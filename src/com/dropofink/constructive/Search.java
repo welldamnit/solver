@@ -28,15 +28,18 @@ public class Search {
         }
         // TODO: No solution here, backtracking. Could record a no-good.
         currentState.unassignLast();
+      } else {
+        Value nextVal = valueHeuristic.nextValue(nextVar, allowedValues);
+        currentState.extend(Assignment.of(nextVar, nextVal));
       }
-      Value nextVal = valueHeuristic.nextValue(nextVar, allowedValues);
-      currentState.extend(Assignment.of(nextVar, nextVal));
     }
     return true;
   }
 
   public Assignments nextSolution() {
-    return new Assignments(currentState.getAssignmentStack());
+    final Assignments assignments = new Assignments(currentState.getAssignmentStack());
+    currentState.unassignLast();
+    return assignments;
   }
 
   private Set<Value> getAllowedValues(Variable variable) {
