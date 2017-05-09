@@ -1,22 +1,21 @@
 package com.dropofink.constructive;
 
-import com.dropofink.model.Value;
 import com.dropofink.model.Variable;
 
 import java.util.Collection;
 
 public class SimpleHeuristics {
-  public static class FirstVariable implements VariableHeuristic {
+  public static class FirstVariable<T> implements VariableHeuristic<T> {
     @Override
-    public Variable nextVariable(Collection<Variable> unassignedVariables) {
-      return unassignedVariables.iterator().next();
+    public Variable<T> nextVariable(Collection<Variable<T>> unassignedVariables) {
+      return unassignedVariables.stream().sorted().iterator().next();
     }
   }
 
-  public static class FirstValue implements ValueHeuristic {
+  public static class FirstValue<T> implements ValueHeuristic<T> {
     @Override
-    public Value nextValue(Variable variable, Collection<Value> allowedValues) {
-      return allowedValues.iterator().next();
+    public T nextValue(Variable variable, Collection<T> allowedValues) {
+      return allowedValues.stream().sorted().iterator().next();
     }
   }
 }

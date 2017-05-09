@@ -8,34 +8,34 @@ import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
 
-public class State {
-  private final Problem problem;
-  private final Set<Variable> unassignedVariables;
-  private Stack<Assignment> assignmentStack = new Stack<>();
-  private Stack<Assignments> attemptedAssignments = new Stack<>();
+public class State<T> {
+  private final Problem<T> problem;
+  private final Set<Variable<T>> unassignedVariables;
+  private Stack<Assignment<T>> assignmentStack = new Stack<>();
+  private Stack<Assignments<T>> attemptedAssignments = new Stack<>();
 
-  public State(Problem problem) {
+  public State(Problem<T> problem) {
     this.problem = problem;
     this.unassignedVariables = new HashSet<>();
     getUnassignedVariables().addAll(problem.getVariables());
 
-    attemptedAssignments.push(new Assignments());
+    attemptedAssignments.push(new Assignments<>());
   }
 
-  public void extend(Assignment assignment) {
+  public void extend(Assignment<T> assignment) {
     Preconditions.checkArgument(unassignedVariables.contains(assignment.variable()));
-    Assignments currentAttemptedAssignments = getCurrentAttemptedAssignments();
+    Assignments<T> currentAttemptedAssignments = getCurrentAttemptedAssignments();
     Preconditions.checkArgument(!currentAttemptedAssignments.contains(assignment));
     currentAttemptedAssignments.add(assignment);
-    attemptedAssignments.push(new Assignments());
+    attemptedAssignments.push(new Assignments<>());
     assignmentStack.push(assignment);
     unassignedVariables.remove(assignment.variable());
   }
 
-  public Assignment unassignLast() {
+  public Assignment<T> unassignLast() {
     Preconditions.checkArgument(!isRoot());
     attemptedAssignments.pop();
-    Assignment assignment = assignmentStack.pop();
+    Assignment<T> assignment = assignmentStack.pop();
     unassignedVariables.add(assignment.variable());
     return assignment;
   }
@@ -45,27 +45,27 @@ public class State {
   }
   public boolean isRoot() { return assignmentStack.isEmpty(); }
 
-  public Set<Variable> getUnassignedVariables() {
+  public Set<Variable<T>> getUnassignedVariables() {
     return unassignedVariables;
   }
 
-  public Set<Assignment> getAssignmentStack() {
+  Set<Assignment<T>> getAssignmentStack() {
     return ImmutableSet.copyOf(assignmentStack);
   }
 
-  public Assignments getCurrentAttemptedAssignments() {
+  public Assignments<T> getCurrentAttemptedAssignments() {
     return attemptedAssignments.peek();
   }
 
   // TODO: Constraints should actively monitor state and this set should be maintained incrementally.
-  public Assignments getConstraintViolatingPotentialAssignments() {
-    Assignments violations = new Assignments();
-    Assignments partialState = new Assignments(getAssignmentStack());
-    for (Variable variable : unassignedVariables) {
-      for (Value value : variable.domain().getValues()) {
-        Assignment nextAssignment = Assignment.of(variable, value);
+  Assignments<T> getConstraintViolatingPotentialAssignments() {
+    Assignments<T> violations = new Assignments<>();
+    Assignments<T> partialState = new Assignments<>(getAssignmentStack());
+    for (Variable<T> variable : unassignedVariables) {
+      for (T value : variable.domain()) {
+        Assignment<T> nextAssignment = Assignment.of(variable, value);
         partialState.add(nextAssignment);
-        for (Constraint constraint : problem.getConstraints()) {
+        for (Constraint<T> constraint : problem.getConstraints()) {
           if (!constraint.isSatisfied(partialState)) {
             violations.add(nextAssignment);
           }

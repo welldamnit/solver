@@ -4,6 +4,6 @@ import com.dropofink.model.Variable;
 
 import java.util.Collection;
 
-public interface VariableHeuristic {
-  Variable nextVariable(Collection<Variable> unassignedVariables);
+public interface VariableHeuristic<T> {
+  Variable<T> nextVariable(Collection<Variable<T>> unassignedVariables);
 }

@@ -1,21 +1,15 @@
 package com.dropofink.constraints;
 
-import com.dropofink.model.Assignment;
-import com.dropofink.model.Assignments;
-import com.dropofink.model.Value;
 import com.dropofink.model.Variable;
 
-import java.util.Map;
-import java.util.Set;
-
 public class BinaryConstraints {
-  public static class NotEquals extends BinaryConstraint {
-    public NotEquals(Variable first, Variable second) {
+  public static class NotEquals<T> extends BinaryConstraint<T> {
+    public NotEquals(Variable<T> first, Variable<T> second) {
       super(first, second);
     }
 
     @Override
-    public boolean isSatisfied(Value firstValue, Value secondValue) {
+    public boolean isSatisfied(T firstValue, T secondValue) {
       return !firstValue.equals(secondValue);
     }
   }

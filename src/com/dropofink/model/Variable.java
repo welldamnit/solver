@@ -5,16 +5,16 @@ import com.google.auto.value.AutoValue;
 import javax.validation.constraints.NotNull;
 
 @AutoValue
-public abstract class Variable implements Comparable<Variable> {
+public abstract class Variable<T> implements Comparable<Variable<T>> {
   public abstract String name();
-  public abstract Domain domain();
+  public abstract Domain<T> domain();
 
-  public static Variable create(String name, Domain domain) {
-    return new AutoValue_Variable(name, domain);
+  public static <T> Variable<T> create(String name, Domain<T> domain) {
+    return new AutoValue_Variable<>(name, domain);
   }
 
   @Override
-  public int compareTo(@org.jetbrains.annotations.NotNull Variable variable) {
+  public int compareTo(@org.jetbrains.annotations.NotNull Variable<T> variable) {
     return name().compareTo(variable.name());
   }
 }

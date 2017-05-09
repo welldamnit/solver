@@ -5,23 +5,26 @@ import com.google.common.collect.Sets;
 
 import java.util.*;
 
-public class Search {
-  private final VariableHeuristic variableHeuristic;
-  private final ValueHeuristic valueHeuristic;
+public class Search<T> {
+  private final VariableHeuristic<T> variableHeuristic;
+  private final ValueHeuristic<T> valueHeuristic;
 
-  private State currentState;
+  private State<T> currentState;
+  private long statesVisited;
 
-  public Search(Problem problem, VariableHeuristic variableHeuristic, ValueHeuristic valueHeuristic) {
+  public Search(Problem<T> problem, VariableHeuristic<T> variableHeuristic, ValueHeuristic<T> valueHeuristic) {
     this.variableHeuristic = variableHeuristic;
     this.valueHeuristic = valueHeuristic;
 
-    currentState = new State(problem);
+    currentState = new State<>(problem);
+    statesVisited = 0;
   }
 
   public boolean hasNextSolution() {
     while (!currentState.isLeaf()) {
-      Variable nextVar = variableHeuristic.nextVariable(currentState.getUnassignedVariables());
-      Set<Value> allowedValues = getAllowedValues(nextVar);
+      statesVisited++;
+      Variable<T> nextVar = variableHeuristic.nextVariable(currentState.getUnassignedVariables());
+      Set<T> allowedValues = getAllowedValues(nextVar);
       if (allowedValues.isEmpty()) {
         if (currentState.isRoot()) {
           return false;
@@ -29,24 +32,28 @@ public class Search {
         // TODO: No solution here, backtracking. Could record a no-good.
         currentState.unassignLast();
       } else {
-        Value nextVal = valueHeuristic.nextValue(nextVar, allowedValues);
+        T nextVal = valueHeuristic.nextValue(nextVar, allowedValues);
         currentState.extend(Assignment.of(nextVar, nextVal));
       }
     }
     return true;
   }
 
-  public Assignments nextSolution() {
-    final Assignments assignments = new Assignments(currentState.getAssignmentStack());
+  public Assignments<T> nextSolution() {
+    final Assignments<T> assignments = new Assignments<>(currentState.getAssignmentStack());
     currentState.unassignLast();
     return assignments;
   }
 
-  private Set<Value> getAllowedValues(Variable variable) {
-    Set<Value> attemptedValues = currentState.getCurrentAttemptedAssignments().getAssignedValuesFor(variable);
-    Set<Value> constraintBreakingValues =
+  private Set<T> getAllowedValues(Variable<T> variable) {
+    Set<T> attemptedValues = currentState.getCurrentAttemptedAssignments().getAssignedValuesFor(variable);
+    Set<T> constraintBreakingValues =
         currentState.getConstraintViolatingPotentialAssignments().getAssignedValuesFor(variable);
-    Set<Value> unattemptedValues = Sets.difference(variable.domain().getValues(), attemptedValues);
+    Set<T> unattemptedValues = Sets.difference(variable.domain(), attemptedValues);
     return Sets.difference(unattemptedValues, constraintBreakingValues);
+  }
+
+  public long getStatesVisited() {
+    return statesVisited;
   }
 }

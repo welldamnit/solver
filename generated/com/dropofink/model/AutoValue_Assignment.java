@@ -4,14 +4,14 @@ package com.dropofink.model;
 import javax.annotation.Generated;
 
 @Generated("com.google.auto.value.processor.AutoValueProcessor")
-final class AutoValue_Assignment extends Assignment {
+final class AutoValue_Assignment<T> extends Assignment<T> {
 
-  private final Variable variable;
-  private final Value value;
+  private final Variable<T> variable;
+  private final T value;
 
   AutoValue_Assignment(
-      Variable variable,
-      Value value) {
+      Variable<T> variable,
+      T value) {
     if (variable == null) {
       throw new NullPointerException("Null variable");
     }
@@ -23,12 +23,12 @@ final class AutoValue_Assignment extends Assignment {
   }
 
   @Override
-  public Variable variable() {
+  public Variable<T> variable() {
     return variable;
   }
 
   @Override
-  public Value value() {
+  public T value() {
     return value;
   }
 
@@ -46,7 +46,7 @@ final class AutoValue_Assignment extends Assignment {
       return true;
     }
     if (o instanceof Assignment) {
-      Assignment that = (Assignment) o;
+      Assignment<?> that = (Assignment<?>) o;
       return (this.variable.equals(that.variable()))
            && (this.value.equals(that.value()));
     }

@@ -8,24 +8,24 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-public class Problem {
-  private final ImmutableList<Variable> variables;
-  private final ImmutableSet<Constraint> constraints;
+public class Problem<T> {
+  private final ImmutableList<Variable<T>> variables;
+  private final ImmutableSet<Constraint<T>> constraints;
 
-  public Problem(List<Variable> variables, Set<Constraint> constraints) {
+  public Problem(List<Variable<T>> variables, Set<Constraint<T>> constraints) {
     this.variables = ImmutableList.copyOf(variables);
     this.constraints = ImmutableSet.copyOf(constraints);
   }
 
-  public List<Variable> getVariables() {
+  public List<Variable<T>> getVariables() {
     return variables;
   }
 
-  public Set<Constraint> getConstraints() {
+  public Set<Constraint<T>> getConstraints() {
     return constraints;
   }
 
-  public boolean isSatisfied(Assignments assignments) {
+  public boolean isSatisfied(Assignments<T> assignments) {
     long broken = getConstraints().stream().filter(c -> !c.isSatisfied(assignments)).count();
     return broken == 0;
   }

@@ -4,14 +4,14 @@ package com.dropofink.model;
 import javax.annotation.Generated;
 
 @Generated("com.google.auto.value.processor.AutoValueProcessor")
-final class AutoValue_Variable extends Variable {
+final class AutoValue_Variable<T> extends Variable<T> {
 
   private final String name;
-  private final Domain domain;
+  private final Domain<T> domain;
 
   AutoValue_Variable(
       String name,
-      Domain domain) {
+      Domain<T> domain) {
     if (name == null) {
       throw new NullPointerException("Null name");
     }
@@ -28,7 +28,7 @@ final class AutoValue_Variable extends Variable {
   }
 
   @Override
-  public Domain domain() {
+  public Domain<T> domain() {
     return domain;
   }
 
@@ -46,7 +46,7 @@ final class AutoValue_Variable extends Variable {
       return true;
     }
     if (o instanceof Variable) {
-      Variable that = (Variable) o;
+      Variable<?> that = (Variable<?>) o;
       return (this.name.equals(that.name()))
            && (this.domain.equals(that.domain()));
     }
