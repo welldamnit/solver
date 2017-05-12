@@ -8,10 +8,12 @@ final class AutoValue_Assignment<T> extends Assignment<T> {
 
   private final Variable<T> variable;
   private final T value;
+  private final boolean isFailedAttempt;
 
   AutoValue_Assignment(
       Variable<T> variable,
-      T value) {
+      T value,
+      boolean isFailedAttempt) {
     if (variable == null) {
       throw new NullPointerException("Null variable");
     }
@@ -20,6 +22,7 @@ final class AutoValue_Assignment<T> extends Assignment<T> {
       throw new NullPointerException("Null value");
     }
     this.value = value;
+    this.isFailedAttempt = isFailedAttempt;
   }
 
   @Override
@@ -33,10 +36,16 @@ final class AutoValue_Assignment<T> extends Assignment<T> {
   }
 
   @Override
+  public boolean isFailedAttempt() {
+    return isFailedAttempt;
+  }
+
+  @Override
   public String toString() {
     return "Assignment{"
         + "variable=" + variable + ", "
-        + "value=" + value
+        + "value=" + value + ", "
+        + "isFailedAttempt=" + isFailedAttempt
         + "}";
   }
 
@@ -48,7 +57,8 @@ final class AutoValue_Assignment<T> extends Assignment<T> {
     if (o instanceof Assignment) {
       Assignment<?> that = (Assignment<?>) o;
       return (this.variable.equals(that.variable()))
-           && (this.value.equals(that.value()));
+           && (this.value.equals(that.value()))
+           && (this.isFailedAttempt == that.isFailedAttempt());
     }
     return false;
   }
@@ -60,6 +70,8 @@ final class AutoValue_Assignment<T> extends Assignment<T> {
     h ^= variable.hashCode();
     h *= 1000003;
     h ^= value.hashCode();
+    h *= 1000003;
+    h ^= isFailedAttempt ? 1231 : 1237;
     return h;
   }
 

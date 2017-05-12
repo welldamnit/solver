@@ -1,7 +1,12 @@
 package constructive;
 
+import com.dropofink.constructive.SimpleHeuristics;
 import com.dropofink.constructive.State;
-import com.dropofink.model.*;
+import com.dropofink.constructive.VariableHeuristic;
+import com.dropofink.model.Assignment;
+import com.dropofink.model.Domain;
+import com.dropofink.model.Problem;
+import com.dropofink.model.Variable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.junit.Before;
@@ -30,6 +35,8 @@ public class StateTest {
   public void unassignLast() {
     state.extend(Assignment.of(A, 3));
     state.extend(Assignment.of(B, 3));
+    state.extend(Assignment.failedAttempt(C, 1));
+    assertThat(state.unassignLast()).isEqualTo(Assignment.failedAttempt(C, 1));
     assertThat(state.unassignLast()).isEqualTo(Assignment.of(B, 3));
     assertThat(state.unassignLast()).isEqualTo(Assignment.of(A, 3));
   }
@@ -70,40 +77,26 @@ public class StateTest {
   }
 
   @Test
-  public void unassignedVariables() {
-    assertThat(state.getUnassignedVariables()).containsExactly(A, B, C);
+  public void suggestNextVariable() {
+    VariableHeuristic<Integer> variableHeuristic = new SimpleHeuristics.FirstVariable<>();
+    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(A);
     state.extend(Assignment.of(A, 3));
-    assertThat(state.getUnassignedVariables()).containsExactly(B, C);
-    state.extend(Assignment.of(C, 3));
-    assertThat(state.getUnassignedVariables()).containsExactly(B);
+    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(B);
+    state.extend(Assignment.failedAttempt(B, 1));
+    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(B);
+    state.extend(Assignment.of(B, 3));
+    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(C);
     state.unassignLast();
-    assertThat(state.getUnassignedVariables()).containsExactly(B, C);
+    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(B);
     state.unassignLast();
-    assertThat(state.getUnassignedVariables()).containsExactly(A, B, C);
+    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(B);
+    state.unassignLast();
+    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(A);
   }
 
   @Test(expected = IllegalArgumentException.class)
   public void cannotAssignAlreadyAssignedVariable() {
     state.extend(Assignment.of(A, 3));
-    state.extend(Assignment.of(A, 3));
-  }
-
-  @Test
-  public void currentAttemptedAssignments() {
-    assertThat(state.getCurrentAttemptedAssignments().isEmpty()).isTrue();
-    state.extend(Assignment.of(A, 3));
-    assertThat(state.getCurrentAttemptedAssignments().isEmpty()).isTrue();
-    state.unassignLast();
-
-    Assignments<Integer> expectedAssignments = new Assignments<>();
-    expectedAssignments.add(Assignment.of(A, 3));
-    assertThat(state.getCurrentAttemptedAssignments()).isEqualTo(expectedAssignments);
-  }
-
-  @Test(expected = IllegalArgumentException.class)
-  public void cannotExtend_withAlreadyAttempedAssignment() {
-    state.extend(Assignment.of(A, 3));
-    state.unassignLast();
     state.extend(Assignment.of(A, 3));
   }
 }

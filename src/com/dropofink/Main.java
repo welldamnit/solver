@@ -6,7 +6,7 @@ import com.dropofink.problems.NQueensBinary;
 
 public class Main {
   public static void main(String[] args) {
-    NQueensBinary problem = NQueensBinary.create(8);
+    NQueensBinary problem = NQueensBinary.create(10);
     Search<Integer> search =
         new Search<>(problem, new SimpleHeuristics.FirstVariable<>(), new SimpleHeuristics.FirstValue<>());
     System.out.println("Starting search");

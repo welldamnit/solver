@@ -7,7 +7,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 public class Assignments<T> {
-  private final HashMap<Variable, Set<T>> valuesForVariable;
+  private final HashMap<Variable<T>, Set<T>> valuesForVariable;
 
   public Assignments() {
     this.valuesForVariable = new HashMap<>();
