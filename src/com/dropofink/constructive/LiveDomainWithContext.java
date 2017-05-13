@@ -7,6 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Stack;
 
+import static com.dropofink.constructive.LiveDomainWithContext.PruningWithReason.PruningReason.ASSIGNMENT;
 import static com.google.common.base.Preconditions.checkArgument;
 
 public class LiveDomainWithContext<T> extends LiveDomain<T> {
@@ -39,25 +40,43 @@ public class LiveDomainWithContext<T> extends LiveDomain<T> {
     throw new UnsupportedOperationException("Don't call unprune directly");
   }
 
+  @Override
+  public void pruneToSingleValue(T value) {
+    throw new UnsupportedOperationException("Don't call unprune directly");
+  }
+
+  @Override
+  public void unpruneSingleValue() {
+    throw new UnsupportedOperationException("Don't call unprune directly");
+  }
+
   public void pruneWithReason(int depth, PruningWithReason<T> pruningWithReason) {
     checkArgument(depth >= pruningStack.peek().depth);
     if (pruningStack.peek().depth != depth) {
       pruningStack.push(new PruningsAtDepth<>(depth));
     }
     pruningStack.peek().pruningsWithReasons.add(pruningWithReason);
-    super.prune(pruningWithReason.prunedValue);
+    if (pruningWithReason.pruningReason == ASSIGNMENT) {
+      super.pruneToSingleValue(pruningWithReason.prunedValue);
+    } else {
+      super.prune(pruningWithReason.prunedValue);
+    }
   }
 
   public void undoPruningsAtDepth(int depth) {
     while(pruningStack.peek().depth >= depth) {
       for(PruningWithReason<T> pruning : pruningStack.pop().pruningsWithReasons) {
-        super.unprune(pruning.prunedValue);
+        if (pruning.pruningReason == ASSIGNMENT) {
+          super.unpruneSingleValue();
+        } else {
+          super.unprune(pruning.prunedValue);
+        }
       }
     }
   }
 
   public static class PruningWithReason<T> {
-    public enum PruningReason {CONSTRAINT_PROPAGATION, ASSIGNED_OTHER_VALUE, FAILED_ATTEMPT}
+    public enum PruningReason {CONSTRAINT_PROPAGATION, ASSIGNMENT, FAILED_ATTEMPT}
 
     final T prunedValue;
     final PruningReason pruningReason;

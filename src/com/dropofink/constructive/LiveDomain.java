@@ -1,6 +1,8 @@
 package com.dropofink.constructive;
 
 import com.dropofink.model.Domain;
+import com.google.common.base.Optional;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import java.util.HashSet;
@@ -11,21 +13,34 @@ import static com.google.common.base.Preconditions.checkArgument;
 public class LiveDomain<T> {
   private final Domain<T> underlyingDomain;
   private final Set<T> prunings;
+  private Optional<T> singleValue;
 
   public LiveDomain(Domain<T> underlyingDomain) {
     this.underlyingDomain = underlyingDomain;
-    prunings = new HashSet<>();
+    this.prunings = new HashSet<>();
+    this.singleValue = Optional.absent();
   }
 
   public void prune(T value) {
+    checkArgument(!singleValue.isPresent() || singleValue.get().equals(value));
     checkArgument(underlyingDomain.contains(value));
     checkArgument(!prunings.contains(value));
     prunings.add(value);
   }
 
   public void unprune(T value) {
+    checkArgument(!singleValue.isPresent() || singleValue.get().equals(value));
     checkArgument(prunings.contains(value));
     prunings.remove(value);
+  }
+
+  public void pruneToSingleValue(T value) {
+    checkArgument(!prunings.contains(value));
+    this.singleValue = Optional.of(value);
+  }
+
+  public void unpruneSingleValue() {
+    this.singleValue = Optional.absent();
   }
 
   public boolean isEmpty() {
@@ -33,7 +48,12 @@ public class LiveDomain<T> {
   }
 
   public Set<T> getLiveValues() {
-    return Sets.difference(underlyingDomain, prunings);
+    if (singleValue.isPresent()) {
+      final T value = singleValue.get();
+      return prunings.contains(value) ? ImmutableSet.of() : ImmutableSet.of(value);
+    } else {
+      return Sets.difference(underlyingDomain, prunings);
+    }
   }
 
   @Override

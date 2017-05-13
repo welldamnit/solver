@@ -4,6 +4,7 @@ import com.dropofink.constructive.LiveDomainWithContext;
 import com.dropofink.model.Domain;
 import org.junit.Test;
 
+import static com.dropofink.constructive.LiveDomainWithContext.PruningWithReason.PruningReason.ASSIGNMENT;
 import static com.dropofink.constructive.LiveDomainWithContext.PruningWithReason.PruningReason.CONSTRAINT_PROPAGATION;
 import static com.google.common.truth.Truth.assertThat;
 
@@ -12,17 +13,26 @@ public class LiveDomainWithContextTest {
   private LiveDomainWithContext<Integer> liveDomain = new LiveDomainWithContext<>(DOMAIN);
 
   @Test(expected = UnsupportedOperationException.class)
-  public void prune_DirectCallDisallowed() {
+  public void prune_directCallDisallowed() {
     liveDomain.prune(1);
   }
 
   @Test(expected = UnsupportedOperationException.class)
-  public void unprune_DirectCallDisallowed() {
-    liveDomain.pruneWithReason(1, LiveDomainWithContext.PruningWithReason.of(1, CONSTRAINT_PROPAGATION));
+  public void unprune_directCallDisallowed() {
     liveDomain.unprune(1);
   }
 
-    @Test(expected = IllegalArgumentException.class)
+  @Test(expected = UnsupportedOperationException.class)
+  public void pruneToSingleValue_directCallDisallowed() {
+    liveDomain.pruneToSingleValue(1);
+  }
+
+  @Test(expected = UnsupportedOperationException.class)
+  public void unpruneSingleValue_directCallDisallowed() {
+    liveDomain.unpruneSingleValue();
+  }
+
+  @Test(expected = IllegalArgumentException.class)
   public void pruneWithReason_failsIfDepthsAreInconsistent() {
     liveDomain.pruneWithReason(2, LiveDomainWithContext.PruningWithReason.of(1, CONSTRAINT_PROPAGATION));
     liveDomain.pruneWithReason(1, LiveDomainWithContext.PruningWithReason.of(2, CONSTRAINT_PROPAGATION));
@@ -42,6 +52,12 @@ public class LiveDomainWithContextTest {
   }
 
   @Test
+  public void pruneWithReason_assignment() {
+    liveDomain.pruneWithReason(1, LiveDomainWithContext.PruningWithReason.of(1, ASSIGNMENT));
+    assertThat(liveDomain.getLiveValues()).containsExactly(1);
+  }
+
+  @Test
   public void undoPruningsAtDepth_undoLastDepthOnly() {
     liveDomain.pruneWithReason(1, LiveDomainWithContext.PruningWithReason.of(1, CONSTRAINT_PROPAGATION));
     liveDomain.pruneWithReason(2, LiveDomainWithContext.PruningWithReason.of(2, CONSTRAINT_PROPAGATION));
@@ -54,6 +70,13 @@ public class LiveDomainWithContextTest {
     liveDomain.pruneWithReason(1, LiveDomainWithContext.PruningWithReason.of(1, CONSTRAINT_PROPAGATION));
     liveDomain.pruneWithReason(2, LiveDomainWithContext.PruningWithReason.of(2, CONSTRAINT_PROPAGATION));
     liveDomain.pruneWithReason(2, LiveDomainWithContext.PruningWithReason.of(3, CONSTRAINT_PROPAGATION));
+    liveDomain.undoPruningsAtDepth(1);
+    assertThat(liveDomain.getLiveValues()).containsExactly(1, 2, 3, 4);
+  }
+
+  @Test
+  public void undoPruningsAtDepth_assignment() {
+    liveDomain.pruneWithReason(1, LiveDomainWithContext.PruningWithReason.of(1, ASSIGNMENT));
     liveDomain.undoPruningsAtDepth(1);
     assertThat(liveDomain.getLiveValues()).containsExactly(1, 2, 3, 4);
   }

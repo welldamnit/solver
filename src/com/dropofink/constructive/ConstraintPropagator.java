@@ -7,7 +7,7 @@ import com.google.common.collect.Multimap;
 
 import java.util.*;
 
-import static com.dropofink.constructive.LiveDomainWithContext.PruningWithReason.PruningReason.ASSIGNED_OTHER_VALUE;
+import static com.dropofink.constructive.LiveDomainWithContext.PruningWithReason.PruningReason.ASSIGNMENT;
 import static com.dropofink.constructive.LiveDomainWithContext.PruningWithReason.PruningReason.CONSTRAINT_PROPAGATION;
 import static com.dropofink.constructive.LiveDomainWithContext.PruningWithReason.PruningReason.FAILED_ATTEMPT;
 import static com.dropofink.constructive.LiveDomainWithContext.PruningWithReason.of;
@@ -39,9 +39,9 @@ public class ConstraintPropagator<T> {
     int depth = variablesPrunedByDepth.size();
     Set<Variable<T>> pruned = new HashSet<>();
     if (assignment.isFailedAttempt()) {
-      pruneFromFailedAttempt(assignment);
+      liveDomains.get(assignment.variable()).pruneWithReason(depth, of(assignment.value(), FAILED_ATTEMPT));
     } else {
-      pruneFromRegularAssignment(assignment);
+      liveDomains.get(assignment.variable()).pruneWithReason(depth, of(assignment.value(), ASSIGNMENT));
     }
     pruned.add(assignment.variable());
 
@@ -75,25 +75,6 @@ public class ConstraintPropagator<T> {
     }
     variablesPrunedByDepth.push(pruned);
     return true;
-  }
-
-  private void pruneFromRegularAssignment(Assignment<T> assignment) {
-    // TODO: This is inefficient for larger domains.
-    int depth = variablesPrunedByDepth.size();
-    final T value = assignment.value();
-    final Variable<T> variable = assignment.variable();
-    final LiveDomainWithContext<T> liveDomain = liveDomains.get(variable);
-    final Set<T> liveValues = copyOf(liveDomain.getLiveValues());
-    for (T otherValue : liveValues) {
-      if (!otherValue.equals(value)) {
-        liveDomain.pruneWithReason(depth, of(otherValue, ASSIGNED_OTHER_VALUE));
-      }
-    }
-  }
-
-  private void pruneFromFailedAttempt(Assignment<T> failedAttempt) {
-    int depth = variablesPrunedByDepth.size();
-    liveDomains.get(failedAttempt.variable()).pruneWithReason(depth, of(failedAttempt.value(), FAILED_ATTEMPT));
   }
 
   public void undoLastPropagation() {

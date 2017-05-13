@@ -46,6 +46,19 @@ public class LiveDomainTest {
     liveDomain.prune(1);
   }
 
+  @Test(expected = IllegalArgumentException.class)
+  public void prune_differentSingleValueSet() {
+    liveDomain.pruneToSingleValue(1);
+    liveDomain.prune(2);
+  }
+
+  @Test
+  public void prune_sameSingleValueSet() {
+    liveDomain.pruneToSingleValue(1);
+    liveDomain.prune(1);
+    assertThat(liveDomain.getLiveValues()).isEmpty();
+  }
+
   @Test
   public void unprune_valid() {
     liveDomain.prune(1);
@@ -58,5 +71,39 @@ public class LiveDomainTest {
   @Test(expected = IllegalArgumentException.class)
   public void unprune_valueNotPruned() {
     liveDomain.unprune(1);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void unprune_singleValueSet() {
+    liveDomain.prune(2);
+    liveDomain.pruneToSingleValue(1);
+    liveDomain.unprune(2);
+  }
+
+  @Test
+  public void unprune_sameSingleValueSet() {
+    liveDomain.pruneToSingleValue(1);
+    liveDomain.prune(1);
+    liveDomain.unprune(1);
+    assertThat(liveDomain.getLiveValues()).containsExactly(1);
+  }
+
+  @Test(expected = IllegalArgumentException.class)
+  public void pruneToSingleValue_valueAlreadyPruned() {
+    liveDomain.prune(1);
+    liveDomain.pruneToSingleValue(1);
+  }
+
+  @Test
+  public void pruneToSingleValue() {
+    liveDomain.pruneToSingleValue(1);
+    assertThat(liveDomain.getLiveValues()).containsExactly(1);
+  }
+
+  @Test
+  public void unpruneSingleValue() {
+    liveDomain.pruneToSingleValue(1);
+    liveDomain.unpruneSingleValue();
+    assertThat(liveDomain.getLiveValues()).containsExactly(1, 2, 3, 4);
   }
 }
