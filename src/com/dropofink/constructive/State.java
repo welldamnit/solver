@@ -6,6 +6,7 @@ import com.google.common.base.Preconditions;
 import java.util.HashSet;
 import java.util.Set;
 import java.util.Stack;
+import java.util.StringJoiner;
 import java.util.stream.Collectors;
 
 public class State<T> {
@@ -51,6 +52,12 @@ public class State<T> {
 
   @Override
   public String toString() {
-    return assignmentStack.toString();
+    StringJoiner joiner = new StringJoiner(", ");
+    for (Assignment<T> assignment : assignmentStack) {
+      if (!assignment.isFailedAttempt()) {
+        joiner.add(String.format("%s = %s", assignment.variable().name(), assignment.value()));
+      }
+    }
+    return joiner.toString();
   }
 }
