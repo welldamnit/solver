@@ -77,21 +77,21 @@ public class StateTest {
   }
 
   @Test
-  public void suggestNextVariable() {
+  public void getUnassignedVariables() {
     VariableHeuristic<Integer> variableHeuristic = new SimpleHeuristics.FirstVariable<>();
-    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(A);
+    assertThat(state.getUnassignedVariables()).containsExactly(A, B, C);
     state.extend(Assignment.of(A, 3));
-    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(B);
+    assertThat(state.getUnassignedVariables()).containsExactly(B, C);
     state.extend(Assignment.failedAttempt(B, 1));
-    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(B);
+    assertThat(state.getUnassignedVariables()).containsExactly(B, C);
     state.extend(Assignment.of(B, 3));
-    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(C);
+    assertThat(state.getUnassignedVariables()).containsExactly(C);
     state.unassignLast();
-    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(B);
+    assertThat(state.getUnassignedVariables()).containsExactly(B, C);
     state.unassignLast();
-    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(B);
+    assertThat(state.getUnassignedVariables()).containsExactly(B, C);
     state.unassignLast();
-    assertThat(state.suggestNextVariable(variableHeuristic)).isEqualTo(A);
+    assertThat(state.getUnassignedVariables()).containsExactly(A, B, C);
   }
 
   @Test(expected = IllegalArgumentException.class)

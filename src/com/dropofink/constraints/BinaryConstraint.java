@@ -11,8 +11,8 @@ import java.util.Map;
 import java.util.Set;
 
 public abstract class BinaryConstraint<T> implements Constraint<T> {
-  private final Variable<T> first;
-  private final Variable<T> second;
+  protected final Variable<T> first;
+  protected final Variable<T> second;
   private final Set<Variable<T>> variables;
 
   public BinaryConstraint(Variable<T> first, Variable<T> second) {

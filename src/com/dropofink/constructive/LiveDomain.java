@@ -1,11 +1,11 @@
 package com.dropofink.constructive;
 
 import com.dropofink.model.Domain;
-import com.google.common.base.Optional;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
 import java.util.HashSet;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -18,7 +18,7 @@ public class LiveDomain<T> {
   public LiveDomain(Domain<T> underlyingDomain) {
     this.underlyingDomain = underlyingDomain;
     this.prunings = new HashSet<>();
-    this.singleValue = Optional.absent();
+    this.singleValue = Optional.empty();
   }
 
   public void prune(T value) {
@@ -40,11 +40,18 @@ public class LiveDomain<T> {
   }
 
   public void unpruneSingleValue() {
-    this.singleValue = Optional.absent();
+    this.singleValue = Optional.empty();
   }
 
   public boolean isEmpty() {
     return prunings.size() == underlyingDomain.size();
+  }
+
+  int size() {
+    if (singleValue.isPresent()) {
+      return prunings.contains(singleValue.get()) ? 0 : 1;
+    }
+    return underlyingDomain.size() - prunings.size();
   }
 
   public Set<T> getLiveValues() {

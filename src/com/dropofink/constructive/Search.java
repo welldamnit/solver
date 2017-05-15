@@ -8,6 +8,7 @@ public class Search<T> {
   private final VariableHeuristic<T> variableHeuristic;
   private final ValueHeuristic<T> valueHeuristic;
   private final State<T> state;
+  private final Map<Variable<T>, LiveDomainWithContext<T>> liveDomains;
   private final ConstraintPropagator<T> constraintPropagator;
 
   private long statesVisited;
@@ -17,18 +18,26 @@ public class Search<T> {
     this.variableHeuristic = variableHeuristic;
     this.valueHeuristic = valueHeuristic;
     this.state = new State<>(problem);
-    this.constraintPropagator = new ConstraintPropagator<>(problem);
-
+    this.liveDomains = initLiveDomains(problem.getVariables());
+    this.constraintPropagator = new ConstraintPropagator<>(problem, liveDomains);
     statesVisited = 0;
     done = false;
+  }
+
+  private static <T> Map<Variable<T>, LiveDomainWithContext<T>> initLiveDomains(Collection<Variable<T>> variables) {
+    Map<Variable<T>, LiveDomainWithContext<T>> liveDomains = new HashMap<>();
+    for (Variable<T> variable : variables) {
+      liveDomains.put(variable, new LiveDomainWithContext<>(variable.domain()));
+    }
+    return liveDomains;
   }
 
   public boolean hasNextSolution() {
     while (!state.isLeaf() && !done) {
       statesVisited++;
 
-      Variable<T> nextVariable = state.suggestNextVariable(variableHeuristic);
-      Set<T> liveValues = constraintPropagator.getLiveValues(nextVariable);
+      Variable<T> nextVariable = variableHeuristic.nextVariable(state.getUnassignedVariables(), liveDomains);
+      Set<T> liveValues = liveDomains.get(nextVariable).getLiveValues();
       boolean shouldBacktrack = liveValues.isEmpty();
       if (!shouldBacktrack) {
         T nextValue = valueHeuristic.nextValue(nextVariable, liveValues);

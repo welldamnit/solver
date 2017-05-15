@@ -1,6 +1,8 @@
 package com.dropofink.constructive;
 
-import com.dropofink.model.*;
+import com.dropofink.model.Assignment;
+import com.dropofink.model.Problem;
+import com.dropofink.model.Variable;
 import com.google.common.base.Preconditions;
 
 import java.util.HashSet;
@@ -36,7 +38,6 @@ public class State<T> {
     return assignment;
   }
 
-  public int getDepth() { return assignmentStack.size(); }
   public boolean isLeaf() {
     return unassignedVariables.isEmpty();
   }
@@ -46,8 +47,8 @@ public class State<T> {
     return assignmentStack.stream().filter(e -> !e.isFailedAttempt()).collect(Collectors.toSet());
   }
 
-  public Variable<T> suggestNextVariable(VariableHeuristic<T> variableHeuristic) {
-    return variableHeuristic.nextVariable(unassignedVariables);
+  public Set<Variable<T>> getUnassignedVariables() {
+    return unassignedVariables;
   }
 
   @Override
