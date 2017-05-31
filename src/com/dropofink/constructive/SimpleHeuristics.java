@@ -2,14 +2,13 @@ package com.dropofink.constructive;
 
 import com.dropofink.model.Variable;
 
-import java.util.Collection;
-import java.util.Map;
+import java.util.*;
 
 public class SimpleHeuristics {
   public static class FirstVariable<T> implements VariableHeuristic<T> {
     @Override
     public Variable<T> nextVariable(
-        Collection<Variable<T>> unassignedVariables, Map<Variable<T>, LiveDomainWithContext<T>> liveDomains) {
+        Set<Variable<T>> unassignedVariables, Map<Variable<T>, LiveDomainWithContext<T>> liveDomains) {
       return unassignedVariables.stream().sorted().iterator().next();
     }
   }
@@ -21,10 +20,25 @@ public class SimpleHeuristics {
     }
   }
 
+  public static class RandomValue<T> implements ValueHeuristic<T> {
+    private final Random random = new Random();
+
+    @Override
+    public T nextValue(Variable variable, Collection<T> allowedValues) {
+      int index = random.nextInt(allowedValues.size());
+      // TODO: This is inefficient when allowedValues is large.
+      for (T value : allowedValues) {
+        if (index-- == 0) {
+          return value;
+        }
+      }
+      throw new IllegalStateException("Not supposed to get here");
+    }
+  }
   public static class SmallestDomain<T> implements VariableHeuristic<T> {
     @Override
     public Variable<T> nextVariable(
-        Collection<Variable<T>> unassignedVariables, Map<Variable<T>, LiveDomainWithContext<T>> liveDomains) {
+        Set<Variable<T>> unassignedVariables, Map<Variable<T>, LiveDomainWithContext<T>> liveDomains) {
       int smallestDomainSize = Integer.MAX_VALUE;
       Variable<T> smallestDomainVariable = null;
       for (Variable<T> variable : unassignedVariables) {

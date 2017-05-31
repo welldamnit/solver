@@ -38,6 +38,26 @@ public class SumConstraintTest {
   }
 
   @Test
+  public void isSatisfied_withMin() {
+    Variable<Integer> a = Variable.create("a", Domain.integers(1, 5));
+    Variable<Integer> b = Variable.create("b", Domain.integers(1, 5));
+    Variable<Integer> c = Variable.create("c", Domain.integers(1, 5));
+    SumConstraint constraint = new SumConstraint(ImmutableSet.of(a, b, c), 2);
+    Assignments<Integer> assignments = new Assignments<>();
+    assertThat(constraint.isSatisfied(assignments)).isFalse();
+  }
+
+  @Test
+  public void isSatisfied_withMax() {
+    Variable<Integer> a = Variable.create("a", Domain.integers(1, 5));
+    Variable<Integer> b = Variable.create("b", Domain.integers(1, 5));
+    Variable<Integer> c = Variable.create("c", Domain.integers(1, 5));
+    SumConstraint constraint = new SumConstraint(ImmutableSet.of(a, b, c), 25);
+    Assignments<Integer> assignments = new Assignments<>();
+    assertThat(constraint.isSatisfied(assignments)).isFalse();
+  }
+
+  @Test
   public void isSupported() {
     Variable<Integer> a = Variable.create("a", Domain.integers(1, 5));
     Variable<Integer> b = Variable.create("b", Domain.integers(1, 5));

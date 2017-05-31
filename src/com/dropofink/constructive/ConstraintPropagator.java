@@ -15,11 +15,17 @@ public class ConstraintPropagator<T> {
   private final Problem<T> problem;
   private final Map<Variable<T>, LiveDomainWithContext<T>> liveDomains;
   private final Stack<Set<Variable<T>>> variablesPrunedByDepth;
+  private final List<ConstraintCausedDomainWipeoutListener<T>> wipeoutListeners;
+
+  interface ConstraintCausedDomainWipeoutListener<T> {
+    void constraintCausedDomainWipeout(Constraint<T> constraint);
+  }
 
   public ConstraintPropagator(Problem<T> problem, Map<Variable<T>, LiveDomainWithContext<T>> liveDomains) {
     this.problem = problem;
     this.liveDomains = liveDomains;
     this.variablesPrunedByDepth = new Stack<>();
+    wipeoutListeners = new ArrayList<>();
   }
 
   /** @return true if a solution still may exist after this assignment, false if definitely no solutions exist. */
@@ -62,6 +68,9 @@ public class ConstraintPropagator<T> {
               prunedVariables.add(variable);
               if (liveDomains.get(variable).isEmpty()) {
                 variablesPrunedByDepth.push(prunedVariables);
+                for (ConstraintCausedDomainWipeoutListener<T> wipeoutListener : wipeoutListeners) {
+                  wipeoutListener.constraintCausedDomainWipeout(constraint);
+                }
                 return false;
               }
               frontier.add(variable);
@@ -78,5 +87,9 @@ public class ConstraintPropagator<T> {
     for (Variable<T> variable : variablesPrunedByDepth.pop()) {
       liveDomains.get(variable).undoPruningsAtDepth(depth);
     }
+  }
+
+  void registerConstraintCausedDomainWipeoutListener(ConstraintCausedDomainWipeoutListener<T> listener) {
+    wipeoutListeners.add(listener);
   }
 }

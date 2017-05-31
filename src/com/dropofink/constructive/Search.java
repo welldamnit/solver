@@ -1,5 +1,6 @@
 package com.dropofink.constructive;
 
+import com.dropofink.constructive.ConstraintPropagator.ConstraintCausedDomainWipeoutListener;
 import com.dropofink.model.*;
 
 import java.util.*;
@@ -11,6 +12,7 @@ public class Search<T> {
   private final Map<Variable<T>, LiveDomainWithContext<T>> liveDomains;
   private final ConstraintPropagator<T> constraintPropagator;
 
+  private RestartSchedule restartSchedule = RestartSchedule.never();
   private long statesVisited;
   private boolean done;
 
@@ -22,6 +24,16 @@ public class Search<T> {
     this.constraintPropagator = new ConstraintPropagator<>(problem, liveDomains);
     statesVisited = 0;
     done = false;
+
+    // TODO: This is kind of disgusting, consider teasing things apart some.
+    if (variableHeuristic instanceof ConstraintCausedDomainWipeoutListener) {
+      constraintPropagator.registerConstraintCausedDomainWipeoutListener(
+          (ConstraintCausedDomainWipeoutListener<T>) variableHeuristic);
+    }
+  }
+
+  public void changeRestartSchedule(RestartSchedule restartSchedule) {
+    this.restartSchedule = restartSchedule;
   }
 
   private static <T> Map<Variable<T>, LiveDomainWithContext<T>> initLiveDomains(Collection<Variable<T>> variables) {
@@ -34,6 +46,10 @@ public class Search<T> {
 
   public boolean hasNextSolution() {
     while (!state.isLeaf() && !done) {
+      if (restartSchedule.shouldRestart(statesVisited)) {
+        restart();
+        continue;
+      }
       statesVisited++;
 
       Variable<T> nextVariable = variableHeuristic.nextVariable(state.getUnassignedVariables(), liveDomains);
@@ -54,6 +70,14 @@ public class Search<T> {
     // When we get here we are either at a leaf, which is a solution, or we exhausted search space, and we are done,
     // no more solutions can be found.
     return !done;
+  }
+
+  private void restart() {
+    while (!state.isRoot()) {
+      // Retract the latest assignment and repropagate.
+      state.unassignLast();
+      constraintPropagator.undoLastPropagation();
+    }
   }
 
   private void backtrack() {
